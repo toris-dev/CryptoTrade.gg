@@ -1,43 +1,16 @@
-"use client"
+"use client";
 
-import { Search } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent } from "@/components/ui/card"
-import TopTraders from "./components/top-traders"
-import StatsWidget from "./components/stats-widget"
-import { motion } from "framer-motion"
-import { useState } from "react"
-import { ConnectButton } from "./components/connect-button"
-import { InteractiveChart } from "./components/interactive-chart"
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
+import { Search } from "lucide-react";
+import { InteractiveChart } from "./components/interactive-chart";
+import StatsWidget from "./components/stats-widget";
+import TopTraders from "./components/top-traders";
 
 export default function Home() {
-  const [isConnected, setIsConnected] = useState(false)
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-        <nav className="container mx-auto flex h-16 items-center px-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <motion.span
-              className="text-2xl bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              CryptoTrade.GG
-            </motion.span>
-          </Link>
-          <div className="ml-auto flex items-center gap-4">
-            <Button variant="ghost">Stats</Button>
-            <Button variant="ghost">Leaderboard</Button>
-            <Button variant="ghost">Markets</Button>
-            <ConnectButton isConnected={isConnected} setIsConnected={setIsConnected} />
-          </div>
-        </nav>
-      </header>
-
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8 grid gap-8 md:grid-cols-[300px_1fr]">
           <motion.div
@@ -85,17 +58,23 @@ export default function Home() {
             >
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-gray-300">Most Traded Tokens</h3>
+                  <h3 className="font-semibold text-gray-300">
+                    Most Traded Tokens
+                  </h3>
                 </CardContent>
               </Card>
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-gray-300">Highest Win Rates</h3>
+                  <h3 className="font-semibold text-gray-300">
+                    Highest Win Rates
+                  </h3>
                 </CardContent>
               </Card>
               <Card className="bg-gray-800 border-gray-700">
                 <CardContent className="p-6">
-                  <h3 className="font-semibold text-gray-300">Trading Activity</h3>
+                  <h3 className="font-semibold text-gray-300">
+                    Trading Activity
+                  </h3>
                 </CardContent>
               </Card>
             </motion.div>
@@ -115,6 +94,5 @@ export default function Home() {
         </div>
       </main>
     </div>
-  )
+  );
 }
-
