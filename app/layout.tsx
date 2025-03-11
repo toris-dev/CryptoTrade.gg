@@ -10,8 +10,10 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "CryptoTrade.GG",
-  description: "Web3 Trading Statistics Platform",
-  generator: "v0.dev",
+  description: "암호화폐 투자 전적 사이트",
+  icons: {
+    icon: "/placeholder-logo.svg",
+  },
 };
 
 export default function RootLayout({
