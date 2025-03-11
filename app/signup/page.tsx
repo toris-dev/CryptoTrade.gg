@@ -2,6 +2,7 @@
 
 import type React from "react";
 
+import { ApiKeyGuideModal } from "@/app/components/api-key-guide-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,8 +25,14 @@ export default function SignUpPage() {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [upbitAccessKey, setUpbitAccessKey] = useState("");
+  const [upbitSecretKey, setUpbitSecretKey] = useState("");
+  const [binanceAccessKey, setBinanceAccessKey] = useState("");
+  const [binanceSecretKey, setBinanceSecretKey] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isUpbitModalOpen, setIsUpbitModalOpen] = useState(false);
+  const [isBinanceModalOpen, setIsBinanceModalOpen] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -54,10 +61,10 @@ export default function SignUpPage() {
           email: data.user.email!,
           username,
           display_name: displayName,
-          binance_access_key: "",
-          binance_secret_key: "",
-          upbit_access_key: "",
-          upbit_secret_key: "",
+          upbit_access_key: upbitAccessKey,
+          upbit_secret_key: upbitSecretKey,
+          binance_access_key: binanceAccessKey,
+          binance_secret_key: binanceSecretKey,
           password: "", // Note: Don't store plain text password. This is just a placeholder.
         });
 
@@ -145,6 +152,70 @@ export default function SignUpPage() {
                 className="bg-gray-700 border-gray-600 text-white"
               />
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="upbitAccessKey" className="text-gray-300">
+                Upbit Access Key
+              </Label>
+              <Input
+                id="upbitAccessKey"
+                type="text"
+                value={upbitAccessKey}
+                onChange={(e) => setUpbitAccessKey(e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => setIsUpbitModalOpen(true)}
+                className="text-blue-400"
+              >
+                [업비트 API 키 발급 방법 알아보기]
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="upbitSecretKey" className="text-gray-300">
+                Upbit Secret Key
+              </Label>
+              <Input
+                id="upbitSecretKey"
+                type="password"
+                value={upbitSecretKey}
+                onChange={(e) => setUpbitSecretKey(e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="binanceAccessKey" className="text-gray-300">
+                Binance Access Key
+              </Label>
+              <Input
+                id="binanceAccessKey"
+                type="text"
+                value={binanceAccessKey}
+                onChange={(e) => setBinanceAccessKey(e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+              <Button
+                type="button"
+                variant="link"
+                onClick={() => setIsBinanceModalOpen(true)}
+                className="text-blue-400"
+              >
+                [바이낸스 API 키 발급 방법 알아보기]
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="binanceSecretKey" className="text-gray-300">
+                Binance Secret Key
+              </Label>
+              <Input
+                id="binanceSecretKey"
+                type="password"
+                value={binanceSecretKey}
+                onChange={(e) => setBinanceSecretKey(e.target.value)}
+                className="bg-gray-700 border-gray-600 text-white"
+              />
+            </div>
             <Button
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700"
@@ -163,6 +234,32 @@ export default function SignUpPage() {
           </p>
         </CardFooter>
       </Card>
+      <ApiKeyGuideModal
+        isOpen={isUpbitModalOpen}
+        onClose={() => setIsUpbitModalOpen(false)}
+        exchange="Upbit"
+        guideSteps={[
+          "1. <a href='https://upbit.com' target='_blank'>업비트</a>에 로그인을 하세요.",
+          "2. 상단 > 고객센터를 클릭하세요.",
+          "3. Open API 안내를 클릭 후 Open API 사용하기를 클릭하세요.",
+          "4. 자산조회, 주문조회 만 선택하세요.",
+          "5. Access key, Secret key를 복사하여 아래에 입력하세요.",
+        ]}
+      />
+      <ApiKeyGuideModal
+        isOpen={isBinanceModalOpen}
+        onClose={() => setIsBinanceModalOpen(false)}
+        exchange="Binance"
+        guideSteps={[
+          "1. 바이낸스 계정에 로그인하고 프로필 아이콘을 클릭한 다음 [Account]을 클릭합니다.",
+          "2. [API Management]로 이동한 다음 [Create API]을 클릭합니다.<br /> API 키를 생성하기 전에 다음을 수행해야 합니다: 계정에서 2단계 인증(2FA)을 활성화합니다.<br /> 계정을 활성화하기 위해 스팟 지갑에 원하는 금액을 입금합니다. 신원을 확인해야 합니다.",
+          "3. 선호하는 API 키 유형을 선택합니다.",
+          "4. API 키의 label/name 을 입력합니다.",
+          "5. 2FA 장치와 패스키로 인증합니다.",
+          "6. Enable Reading 만 선택합니다.",
+          "7. API Key, Secret key를 복사하여 아래에 입력하세요.",
+        ]}
+      />
     </div>
   );
 }
