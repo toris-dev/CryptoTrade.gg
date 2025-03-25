@@ -78,7 +78,11 @@ export function Footer() {
                   className="relative group"
                   asChild
                 >
-                  <Link href={link.href} aria-label={link.label}>
+                  <Link
+                    href={link.href}
+                    aria-label={link.label}
+                    target="_blank"
+                  >
                     <span className="absolute inset-0 rounded-full bg-blue-500/10 scale-0 group-hover:scale-100 transition-transform duration-300" />
                     <span className="relative text-blue-600/70 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-primary transition-colors">
                       {link.icon}
