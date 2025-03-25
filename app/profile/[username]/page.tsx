@@ -7,7 +7,7 @@ export default async function ProfilePage({
 }) {
   return (
     <div className="container mx-auto py-8">
-      <UserProfile />
+      <UserProfile username={username} />
     </div>
   );
 }

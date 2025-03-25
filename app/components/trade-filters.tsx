@@ -1,42 +1,24 @@
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { DatePickerWithRange } from "./date-range-picker";
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 
-export default function TradeFilters() {
+interface TradeFiltersProps {
+  onSearch: (query: string) => void;
+}
+
+export function TradeFilters({ onSearch }: TradeFiltersProps) {
   return (
-    <div className="flex flex-wrap gap-4">
-      <Select defaultValue="all">
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="거래 유형" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">모든 거래</SelectItem>
-          <SelectItem value="buy">매수만</SelectItem>
-          <SelectItem value="sell">매도만</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <Select defaultValue="all">
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="상태" />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">모든 상태</SelectItem>
-          <SelectItem value="win">수익 거래</SelectItem>
-          <SelectItem value="loss">손실 거래</SelectItem>
-        </SelectContent>
-      </Select>
-
-      <DatePickerWithRange />
-
-      <Button variant="secondary">필터 적용</Button>
-      <Button variant="outline">초기화</Button>
+    <div className="flex items-center gap-4">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+        <Input
+          placeholder="Search trades..."
+          className="pl-9"
+          onChange={(e) => onSearch(e.target.value)}
+        />
+      </div>
+      <Button variant="outline">Filter</Button>
+      <Button variant="outline">Sort</Button>
     </div>
   );
 }
