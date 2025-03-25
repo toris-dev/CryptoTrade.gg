@@ -18,24 +18,24 @@ export default function UserProfile() {
             <AvatarFallback>JD</AvatarFallback>
           </Avatar>
           <div className="grid gap-1">
-            <h1 className="text-2xl font-bold">John Doe</h1>
+            <h1 className="text-2xl font-bold">홍길동</h1>
             <div className="flex items-center gap-2">
-              <Badge>Pro Trader</Badge>
-              <span className="text-muted-foreground">Member since 2023</span>
+              <Badge>전문 트레이더</Badge>
+              <span className="text-muted-foreground">2023년부터 회원</span>
             </div>
           </div>
           <div className="ml-auto grid gap-1 text-right">
             <div className="text-2xl font-bold text-green-500">$45,678</div>
-            <div className="text-sm text-muted-foreground">Total Profit</div>
+            <div className="text-sm text-muted-foreground">총 수익</div>
           </div>
         </CardContent>
       </Card>
 
       <Tabs defaultValue="history">
         <TabsList>
-          <TabsTrigger value="history">Trade History</TabsTrigger>
-          <TabsTrigger value="stats">Statistics</TabsTrigger>
-          <TabsTrigger value="portfolio">Portfolio</TabsTrigger>
+          <TabsTrigger value="history">거래 내역</TabsTrigger>
+          <TabsTrigger value="stats">통계</TabsTrigger>
+          <TabsTrigger value="portfolio">포트폴리오</TabsTrigger>
         </TabsList>
         <TabsContent value="history" className="space-y-4">
           <TradeFilters />
@@ -61,9 +61,9 @@ export default function UserProfile() {
           <div className="grid gap-4">
             <Card>
               <CardHeader>
-                <CardTitle>Current Holdings</CardTitle>
+                <CardTitle>현재 보유 자산</CardTitle>
               </CardHeader>
-              <CardContent>{/* Add portfolio content here */}</CardContent>
+              <CardContent>{/* 포트폴리오 내용 추가 */}</CardContent>
             </Card>
           </div>
         </TabsContent>

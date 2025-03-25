@@ -9,7 +9,7 @@ export default function StatsWidget() {
     <Card className="bg-gray-800 border-gray-700">
       <CardHeader>
         <CardTitle className="text-lg sm:text-xl text-gray-300">
-          Your Trading Stats
+          내 거래 통계
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
@@ -20,7 +20,7 @@ export default function StatsWidget() {
           transition={{ duration: 0.5 }}
         >
           <div className="flex items-center justify-between">
-            <span className="text-sm text-gray-400">Win Rate</span>
+            <span className="text-sm text-gray-400">승률</span>
             <span className="text-sm font-medium text-gray-300">65%</span>
           </div>
           <Progress value={65} className="bg-gray-700" />
@@ -32,19 +32,19 @@ export default function StatsWidget() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <div className="flex items-center justify-between text-gray-400">
-            <span className="text-sm">Total Trades</span>
+            <span className="text-sm">총 거래</span>
             <span className="text-sm font-medium text-gray-300">156</span>
           </div>
           <div className="flex items-center justify-between text-gray-400">
-            <span className="text-sm">Profitable Trades</span>
+            <span className="text-sm">수익 거래</span>
             <span className="text-sm font-medium text-green-400">102</span>
           </div>
           <div className="flex items-center justify-between text-gray-400">
-            <span className="text-sm">Loss Trades</span>
+            <span className="text-sm">손실 거래</span>
             <span className="text-sm font-medium text-red-400">54</span>
           </div>
           <div className="flex items-center justify-between text-gray-400">
-            <span className="text-sm">Average Profit</span>
+            <span className="text-sm">평균 수익</span>
             <span className="text-sm font-medium text-gray-300">$342.50</span>
           </div>
         </motion.div>

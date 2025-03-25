@@ -36,7 +36,7 @@ export default function Home() {
           {/* 검색바 섹션 */}
           <motion.div variants={itemVariants} className="w-full">
             <div className="relative max-w-xl mx-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 z-50" />
               <Input
                 placeholder="Search trader or token symbol..."
                 className="pl-9 h-11 bg-gray-800/50 border-gray-700 text-white placeholder-gray-400 backdrop-blur-sm w-full"

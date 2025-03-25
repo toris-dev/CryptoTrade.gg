@@ -7,21 +7,21 @@ import { motion } from "framer-motion";
 
 const traders = [
   {
-    name: "Sarah Chen",
+    name: "사라 첸",
     winRate: 78,
     trades: 234,
     profit: "$23,456",
     avatar: "/placeholder.svg?height=40&width=40",
   },
   {
-    name: "Mike Johnson",
+    name: "마이크 존슨",
     winRate: 72,
     trades: 189,
     profit: "$18,234",
     avatar: "/placeholder.svg?height=40&width=40",
   },
   {
-    name: "Alex Kim",
+    name: "알렉스 김",
     winRate: 69,
     trades: 156,
     profit: "$15,678",
@@ -54,13 +54,13 @@ export default function TopTraders() {
                     {trader.name}
                   </div>
                   <div className="text-sm text-gray-400">
-                    {trader.trades} trades
+                    {trader.trades}회 거래
                   </div>
                 </div>
               </div>
               <div className="w-full sm:w-auto sm:ml-auto space-y-2 sm:space-y-1">
                 <div className="flex items-center justify-between sm:justify-end gap-2">
-                  <div className="text-sm text-gray-400">Win Rate</div>
+                  <div className="text-sm text-gray-400">승률</div>
                   <div className="font-medium text-gray-300">
                     {trader.winRate}%
                   </div>
@@ -71,7 +71,7 @@ export default function TopTraders() {
                 <div className="font-medium text-green-400">
                   {trader.profit}
                 </div>
-                <div className="text-sm text-gray-400">Total Profit</div>
+                <div className="text-sm text-gray-400">총 수익</div>
               </div>
             </CardContent>
           </Card>

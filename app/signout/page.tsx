@@ -23,12 +23,12 @@ export default function SignOutPage() {
       <Card className="w-full max-w-md bg-gray-800 border-gray-700">
         <CardHeader>
           <CardTitle className="text-2xl text-white text-center">
-            Signing Out
+            로그아웃 중
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-gray-300 text-center">
-            You are being signed out. Redirecting to home page...
+            로그아웃 처리 중입니다. 홈페이지로 이동합니다...
           </p>
         </CardContent>
       </Card>

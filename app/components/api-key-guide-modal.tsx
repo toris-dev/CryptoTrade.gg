@@ -23,7 +23,7 @@ export function ApiKeyGuideModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-gray-800 text-white">
         <DialogHeader>
-          <DialogTitle>{exchange} API Key 발급 가이드</DialogTitle>
+          <DialogTitle>{exchange} API 키 발급 가이드</DialogTitle>
           <DialogDescription className="text-gray-400">
             {exchange} API 키를 받으려면 다음 단계를 따르세요:
           </DialogDescription>

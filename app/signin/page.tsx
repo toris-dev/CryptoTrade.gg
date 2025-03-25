@@ -42,7 +42,7 @@ export default function SignInPage() {
 
       router.push("/");
     } catch (err) {
-      setError("Invalid email or password. Please try again.");
+      setError("이메일 또는 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.");
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -53,9 +53,9 @@ export default function SignInPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-4">
       <Card className="w-full max-w-md bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-2xl text-white">Sign In</CardTitle>
+          <CardTitle className="text-2xl text-white">로그인</CardTitle>
           <CardDescription className="text-gray-400">
-            Enter your credentials to access your account
+            계정에 접속하기 위해 로그인해 주세요
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,12 +65,14 @@ export default function SignInPage() {
                 variant="destructive"
                 className="bg-red-900/50 border-red-800 text-red-300"
               >
-                <AlertDescription>{error}</AlertDescription>
+                <AlertDescription>
+                  이메일 또는 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.
+                </AlertDescription>
               </Alert>
             )}
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-300">
-                Email
+                이메일
               </Label>
               <Input
                 id="email"
@@ -85,7 +87,7 @@ export default function SignInPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-gray-300">
-                  Password
+                  비밀번호
                 </Label>
                 <Link
                   href="/forgot-password"
@@ -108,15 +110,15 @@ export default function SignInPage() {
               className="w-full bg-blue-600 hover:bg-blue-700"
               disabled={isLoading}
             >
-              {isLoading ? "Signing in..." : "Sign In"}
+              {isLoading ? "로그인 중..." : "로그인"}
             </Button>
           </form>
         </CardContent>
         <CardFooter className="flex justify-center border-t border-gray-700 pt-4">
           <p className="text-gray-400 text-sm">
-            Don&apos;t have an account?{" "}
+            계정이 없으신가요?{" "}
             <Link href="/signup" className="text-blue-400 hover:text-blue-300">
-              Sign up
+              회원가입
             </Link>
           </p>
         </CardFooter>

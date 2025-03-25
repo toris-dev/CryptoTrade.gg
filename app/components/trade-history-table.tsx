@@ -14,32 +14,32 @@ const trades = [
   {
     id: 1,
     symbol: "AAPL",
-    type: "BUY",
+    type: "매수",
     price: 180.5,
     quantity: 10,
     profit: 250.0,
     date: "2024-02-19",
-    status: "WIN",
+    status: "수익",
   },
   {
     id: 2,
     symbol: "TSLA",
-    type: "SELL",
+    type: "매도",
     price: 195.2,
     quantity: 5,
     profit: -120.5,
     date: "2024-02-19",
-    status: "LOSS",
+    status: "손실",
   },
   {
     id: 3,
     symbol: "MSFT",
-    type: "BUY",
+    type: "매수",
     price: 402.75,
     quantity: 3,
     profit: 180.25,
     date: "2024-02-18",
-    status: "WIN",
+    status: "수익",
   },
 ];
 
@@ -48,13 +48,13 @@ export default function TradeHistoryTable() {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Symbol</TableHead>
-          <TableHead>Type</TableHead>
-          <TableHead className="text-right">Price</TableHead>
-          <TableHead className="text-right">Quantity</TableHead>
-          <TableHead className="text-right">Profit/Loss</TableHead>
-          <TableHead className="text-right">Status</TableHead>
+          <TableHead>날짜</TableHead>
+          <TableHead>종목</TableHead>
+          <TableHead>유형</TableHead>
+          <TableHead className="text-right">가격</TableHead>
+          <TableHead className="text-right">수량</TableHead>
+          <TableHead className="text-right">수익/손실</TableHead>
+          <TableHead className="text-right">상태</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -63,7 +63,7 @@ export default function TradeHistoryTable() {
             <TableCell>{trade.date}</TableCell>
             <TableCell className="font-medium">{trade.symbol}</TableCell>
             <TableCell>
-              <Badge variant={trade.type === "BUY" ? "default" : "secondary"}>
+              <Badge variant={trade.type === "매수" ? "default" : "secondary"}>
                 {trade.type}
               </Badge>
             </TableCell>
@@ -78,7 +78,7 @@ export default function TradeHistoryTable() {
             </TableCell>
             <TableCell className="text-right">
               <Badge
-                variant={trade.status === "WIN" ? "success" : "destructive"}
+                variant={trade.status === "수익" ? "success" : "destructive"}
               >
                 {trade.status}
               </Badge>

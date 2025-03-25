@@ -1,7 +1,6 @@
 "use client";
 
-import type React from "react";
-
+import { signUp } from "@/app/actions/signupActions";
 import { ApiKeyGuideModal } from "@/app/components/api-key-guide-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -13,227 +12,351 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
+
+// 제출 버튼 컴포넌트
+function SubmitButton() {
+  const { pending } = useFormStatus();
+
+  return (
+    <Button
+      type="submit"
+      className="w-full bg-blue-600 hover:bg-blue-700"
+      disabled={pending}
+      aria-disabled={pending}
+    >
+      {pending ? "계정 생성 중..." : "계정 생성하기"}
+    </Button>
+  );
+}
 
 export default function SignUpPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [upbitAccessKey, setUpbitAccessKey] = useState("");
-  const [upbitSecretKey, setUpbitSecretKey] = useState("");
-  const [binanceAccessKey, setBinanceAccessKey] = useState("");
-  const [binanceSecretKey, setBinanceSecretKey] = useState("");
-  const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  // 거래소 선택 상태
+  const [useUpbit, setUseUpbit] = useState(false);
+  const [useBinance, setUseBinance] = useState(false);
+
+  // 모달 상태
   const [isUpbitModalOpen, setIsUpbitModalOpen] = useState(false);
   const [isBinanceModalOpen, setIsBinanceModalOpen] = useState(false);
-  const router = useRouter();
-  const supabase = createClient();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setIsLoading(true);
-
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            username,
-            display_name: displayName,
-          },
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.user) {
-        // Insert additional user data into the User table
-        const { error: insertError } = await supabase.from("User").insert({
-          email: data.user.email!,
-          username,
-          display_name: displayName,
-          upbit_access_key: upbitAccessKey,
-          upbit_secret_key: upbitSecretKey,
-          binance_access_key: binanceAccessKey,
-          binance_secret_key: binanceSecretKey,
-          password: "", // Note: Don't store plain text password. This is just a placeholder.
-        });
-
-        if (insertError) throw insertError;
-
-        router.push("/signin");
-      }
-    } catch (err) {
-      setError("An error occurred during sign up. Please try again.");
-      console.error(err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // 폼 상태 관리
+  const initialState = { errors: {}, message: null };
+  const [formState, formAction] = useFormState(signUp, initialState);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-900 to-gray-800 p-4">
       <Card className="w-full max-w-md bg-gray-800 border-gray-700">
         <CardHeader>
-          <CardTitle className="text-2xl text-white">Sign Up</CardTitle>
+          <CardTitle className="text-2xl text-white">회원가입</CardTitle>
           <CardDescription className="text-gray-400">
-            Create your account to start trading
+            전적검색을 하기 위한 계정을 만드세요.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <Alert
-                variant="destructive"
-                className="bg-red-900/50 border-red-800 text-red-300"
-              >
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
+          {formState.errors?._form && (
+            <Alert
+              variant="destructive"
+              className="bg-red-900/50 border-red-800 text-red-300 mb-4"
+            >
+              <AlertDescription>
+                {formState.errors._form.join(", ")}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {formState.message && (
+            <Alert className="bg-green-900/50 border-green-800 text-green-300 mb-4">
+              <AlertDescription>{formState.message}</AlertDescription>
+            </Alert>
+          )}
+
+          <form action={formAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email" className="text-gray-300">
-                Email
+                이메일
               </Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="name@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-gray-700 border-gray-600 text-white"
+                className={`bg-gray-700 border-gray-600 text-white ${
+                  formState.errors?.email ? "border-red-500" : ""
+                }`}
               />
+              {formState.errors?.email && (
+                <p className="text-sm text-red-500 mt-1">
+                  {formState.errors.email.join(", ")}
+                </p>
+              )}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="password" className="text-gray-300">
-                Password
+                비밀번호
               </Label>
               <Input
                 id="password"
+                name="password"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-gray-700 border-gray-600 text-white"
+                className={`bg-gray-700 border-gray-600 text-white ${
+                  formState.errors?.password ? "border-red-500" : ""
+                }`}
               />
+              {formState.errors?.password && (
+                <p className="text-sm text-red-500 mt-1">
+                  {formState.errors.password.join(", ")}
+                </p>
+              )}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="username" className="text-gray-300">
-                Username
+                사용자명
               </Label>
               <Input
                 id="username"
+                name="username"
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
                 required
-                className="bg-gray-700 border-gray-600 text-white"
+                className={`bg-gray-700 border-gray-600 text-white ${
+                  formState.errors?.username ? "border-red-500" : ""
+                }`}
               />
+              {formState.errors?.username && (
+                <p className="text-sm text-red-500 mt-1">
+                  {formState.errors.username.join(", ")}
+                </p>
+              )}
             </div>
+
             <div className="space-y-2">
               <Label htmlFor="displayName" className="text-gray-300">
-                Display Name
+                표시 이름
               </Label>
               <Input
                 id="displayName"
+                name="displayName"
                 type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
                 required
-                className="bg-gray-700 border-gray-600 text-white"
+                className={`bg-gray-700 border-gray-600 text-white ${
+                  formState.errors?.displayName ? "border-red-500" : ""
+                }`}
               />
+              {formState.errors?.displayName && (
+                <p className="text-sm text-red-500 mt-1">
+                  {formState.errors.displayName.join(", ")}
+                </p>
+              )}
             </div>
+
+            {/* 거래소 선택 */}
             <div className="space-y-2">
-              <Label htmlFor="upbitAccessKey" className="text-gray-300">
-                Upbit Access Key
-              </Label>
-              <Input
-                id="upbitAccessKey"
-                type="text"
-                value={upbitAccessKey}
-                onChange={(e) => setUpbitAccessKey(e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
-              />
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => setIsUpbitModalOpen(true)}
-                className="text-blue-400"
+              <Label className="text-gray-300 block mb-2">거래소 선택</Label>
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="upbit-check"
+                    name="useUpbit"
+                    checked={useUpbit}
+                    onCheckedChange={(checked) => setUseUpbit(!!checked)}
+                  />
+                  <Label
+                    htmlFor="upbit-check"
+                    className={`cursor-pointer font-medium ${
+                      useUpbit ? "text-blue-400" : "text-gray-400"
+                    }`}
+                  >
+                    Upbit (업비트)
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="binance-check"
+                    name="useBinance"
+                    checked={useBinance}
+                    onCheckedChange={(checked) => setUseBinance(!!checked)}
+                  />
+                  <Label
+                    htmlFor="binance-check"
+                    className={`cursor-pointer font-medium ${
+                      useBinance ? "text-blue-400" : "text-gray-400"
+                    }`}
+                  >
+                    Binance (바이낸스)
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {/* API 키 입력 섹션 */}
+            <div className="space-y-4 mt-4">
+              <div
+                className={`transition-all duration-300 overflow-hidden ${
+                  useUpbit ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+                }`}
               >
-                [업비트 API 키 발급 방법 알아보기]
-              </Button>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="upbitSecretKey" className="text-gray-300">
-                Upbit Secret Key
-              </Label>
-              <Input
-                id="upbitSecretKey"
-                type="password"
-                value={upbitSecretKey}
-                onChange={(e) => setUpbitSecretKey(e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="binanceAccessKey" className="text-gray-300">
-                Binance Access Key
-              </Label>
-              <Input
-                id="binanceAccessKey"
-                type="text"
-                value={binanceAccessKey}
-                onChange={(e) => setBinanceAccessKey(e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
-              />
-              <Button
-                type="button"
-                variant="link"
-                onClick={() => setIsBinanceModalOpen(true)}
-                className="text-blue-400"
+                {useUpbit && (
+                  <div className="space-y-4 p-4 bg-gray-700/30 rounded-md">
+                    <h3 className="text-blue-400 text-sm font-medium">
+                      Upbit API Keys
+                    </h3>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="upbitAccessKey" className="text-gray-300">
+                        Upbit Access Key
+                      </Label>
+                      <Input
+                        id="upbitAccessKey"
+                        name="upbitAccessKey"
+                        type="text"
+                        className={`bg-gray-700 border-gray-600 text-white ${
+                          formState.errors?.upbitAccessKey
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => setIsUpbitModalOpen(true)}
+                        className="text-blue-400 p-0 h-auto text-xs"
+                      >
+                        [업비트 API 키 발급 방법 알아보기]
+                      </Button>
+                      {formState.errors?.upbitAccessKey && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {formState.errors.upbitAccessKey.join(", ")}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="upbitSecretKey" className="text-gray-300">
+                        Upbit Secret Key
+                      </Label>
+                      <Input
+                        id="upbitSecretKey"
+                        name="upbitSecretKey"
+                        type="password"
+                        className={`bg-gray-700 border-gray-600 text-white ${
+                          formState.errors?.upbitSecretKey
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {formState.errors?.upbitSecretKey && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {formState.errors.upbitSecretKey.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div
+                className={`transition-all duration-300 overflow-hidden ${
+                  useBinance ? "max-h-screen opacity-100" : "max-h-0 opacity-0"
+                }`}
               >
-                [바이낸스 API 키 발급 방법 알아보기]
-              </Button>
+                {useBinance && (
+                  <div className="space-y-4 p-4 bg-gray-700/30 rounded-md">
+                    <h3 className="text-blue-400 text-sm font-medium">
+                      Binance API Keys
+                    </h3>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="binanceAccessKey"
+                        className="text-gray-300"
+                      >
+                        Binance Access Key
+                      </Label>
+                      <Input
+                        id="binanceAccessKey"
+                        name="binanceAccessKey"
+                        type="text"
+                        className={`bg-gray-700 border-gray-600 text-white ${
+                          formState.errors?.binanceAccessKey
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      <Button
+                        type="button"
+                        variant="link"
+                        onClick={() => setIsBinanceModalOpen(true)}
+                        className="text-blue-400 p-0 h-auto text-xs"
+                      >
+                        [바이낸스 API 키 발급 방법 알아보기]
+                      </Button>
+                      {formState.errors?.binanceAccessKey && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {formState.errors.binanceAccessKey.join(", ")}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="binanceSecretKey"
+                        className="text-gray-300"
+                      >
+                        Binance Secret Key
+                      </Label>
+                      <Input
+                        id="binanceSecretKey"
+                        name="binanceSecretKey"
+                        type="password"
+                        className={`bg-gray-700 border-gray-600 text-white ${
+                          formState.errors?.binanceSecretKey
+                            ? "border-red-500"
+                            : ""
+                        }`}
+                      />
+                      {formState.errors?.binanceSecretKey && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {formState.errors.binanceSecretKey.join(", ")}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {!useUpbit && !useBinance && (
+                <div className="text-center p-4 border border-dashed border-gray-700 rounded-md">
+                  <p className="text-gray-400 text-sm">
+                    거래소를 선택하면 API 키 입력 필드가 나타납니다.
+                  </p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    나중에 설정에서 언제든지 추가할 수 있습니다.
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="binanceSecretKey" className="text-gray-300">
-                Binance Secret Key
-              </Label>
-              <Input
-                id="binanceSecretKey"
-                type="password"
-                value={binanceSecretKey}
-                onChange={(e) => setBinanceSecretKey(e.target.value)}
-                className="bg-gray-700 border-gray-600 text-white"
-              />
-            </div>
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={isLoading}
-            >
-              {isLoading ? "Signing up..." : "Sign Up"}
-            </Button>
+
+            <SubmitButton />
           </form>
         </CardContent>
         <CardFooter className="flex justify-center border-t border-gray-700 pt-4">
           <p className="text-gray-400 text-sm">
-            Already have an account?{" "}
+            이미 계정이 있으신가요?{" "}
             <Link href="/signin" className="text-blue-400 hover:text-blue-300">
-              Sign in
+              로그인하기
             </Link>
           </p>
         </CardFooter>
       </Card>
+
       <ApiKeyGuideModal
         isOpen={isUpbitModalOpen}
         onClose={() => setIsUpbitModalOpen(false)}
@@ -246,6 +369,7 @@ export default function SignUpPage() {
           "5. Access key, Secret key를 복사하여 아래에 입력하세요.",
         ]}
       />
+
       <ApiKeyGuideModal
         isOpen={isBinanceModalOpen}
         onClose={() => setIsBinanceModalOpen(false)}
