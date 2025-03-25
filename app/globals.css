@@ -116,6 +116,21 @@
   @apply opacity-20 dark:opacity-40;
 }
 
+.header-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  width: 100%;
+  border-radius: 0px 0px 20px 20px;
+  border-bottom-width: 1px;
+}
+
+.header-bg {
+  background: hsl(var(--background));
+}
+
 /* Animated Background */
 .animated-bg {
   background: linear-gradient(
