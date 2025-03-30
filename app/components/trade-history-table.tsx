@@ -1,6 +1,3 @@
-"use client";
-
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -9,79 +6,67 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDistanceToNow } from "date-fns";
 
-const trades = [
-  {
-    id: 1,
-    symbol: "AAPL",
-    type: "매수",
-    price: 180.5,
-    quantity: 10,
-    profit: 250.0,
-    date: "2024-02-19",
-    status: "수익",
-  },
-  {
-    id: 2,
-    symbol: "TSLA",
-    type: "매도",
-    price: 195.2,
-    quantity: 5,
-    profit: -120.5,
-    date: "2024-02-19",
-    status: "손실",
-  },
-  {
-    id: 3,
-    symbol: "MSFT",
-    type: "매수",
-    price: 402.75,
-    quantity: 3,
-    profit: 180.25,
-    date: "2024-02-18",
-    status: "수익",
-  },
-];
+interface Trade {
+  id: string;
+  type: "buy" | "sell";
+  symbol: string;
+  amount: number;
+  price: number;
+  timestamp: Date;
+  status: "completed" | "pending" | "failed";
+}
 
-export default function TradeHistoryTable() {
+interface TradeHistoryTableProps {
+  trades: Trade[];
+}
+
+export function TradeHistoryTable({ trades }: TradeHistoryTableProps) {
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>날짜</TableHead>
-          <TableHead>종목</TableHead>
-          <TableHead>유형</TableHead>
-          <TableHead className="text-right">가격</TableHead>
-          <TableHead className="text-right">수량</TableHead>
-          <TableHead className="text-right">수익/손실</TableHead>
-          <TableHead className="text-right">상태</TableHead>
+          <TableHead>Type</TableHead>
+          <TableHead>Symbol</TableHead>
+          <TableHead className="text-right">Amount</TableHead>
+          <TableHead className="text-right">Price</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead>Time</TableHead>
+          <TableHead>Status</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {trades.map((trade) => (
           <TableRow key={trade.id}>
-            <TableCell>{trade.date}</TableCell>
-            <TableCell className="font-medium">{trade.symbol}</TableCell>
-            <TableCell>
-              <Badge variant={trade.type === "매수" ? "default" : "secondary"}>
-                {trade.type}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-right">${trade.price}</TableCell>
-            <TableCell className="text-right">{trade.quantity}</TableCell>
             <TableCell
-              className={`text-right ${
-                trade.profit >= 0 ? "text-green-500" : "text-red-500"
-              }`}
+              className={
+                trade.type === "buy" ? "text-green-500" : "text-red-500"
+              }
             >
-              ${Math.abs(trade.profit)}
+              {trade.type.toUpperCase()}
             </TableCell>
+            <TableCell className="font-medium">{trade.symbol}</TableCell>
+            <TableCell className="text-right">{trade.amount}</TableCell>
+            <TableCell className="text-right">${trade.price}</TableCell>
             <TableCell className="text-right">
-              <Badge
-                variant={trade.status === "수익" ? "success" : "destructive"}
+              ${(trade.amount * trade.price).toFixed(2)}
+            </TableCell>
+            <TableCell>
+              {formatDistanceToNow(trade.timestamp, { addSuffix: true })}
+            </TableCell>
+            <TableCell>
+              <span
+                className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                  trade.status === "completed"
+                    ? "bg-green-50 text-green-700 ring-green-600/20"
+                    : trade.status === "pending"
+                    ? "bg-yellow-50 text-yellow-700 ring-yellow-600/20"
+                    : "bg-red-50 text-red-700 ring-red-600/20"
+                } ring-1 ring-inset`}
               >
                 {trade.status}
-              </Badge>
+              </span>
             </TableCell>
           </TableRow>
         ))}

@@ -1,30 +1,34 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { Analytics } from "@vercel/analytics/react";
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type React from "react";
+import { Footer } from "./components/footer";
 import Header from "./components/header";
 import { AuthProvider } from "./context/auth-context";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: "CryptoTrade.GG",
-  description: "암호화폐 투자 전적 사이트",
-  icons: {
-    icon: "/placeholder-logo.svg",
-  },
+export const metadata = {
+  title: "CryptoTrade.gg",
+  description: "Your Web3 Trading Platform",
+};
+
+export const viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "white" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -32,8 +36,13 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider>
-            <Header />
-            {children}
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-1 pt-16 main-container web3-gradient">
+                <div className="relative z-10">{children}</div>
+              </main>
+              <Footer />
+            </div>
           </AuthProvider>
         </ThemeProvider>
         <Analytics />
