@@ -1,4 +1,5 @@
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@vercel/analytics/react";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import type React from "react";
@@ -35,6 +36,7 @@ export default function RootLayout({
             {children}
           </AuthProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
