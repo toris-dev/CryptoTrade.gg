@@ -1,7 +1,6 @@
 "use server";
 
 import { createSupabaseClient } from "@/lib/supabase/server";
-import bcrypt from "bcrypt";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -15,6 +14,7 @@ export type SignUpFormState = {
     upbitSecretKey?: string[];
     binanceAccessKey?: string[];
     binanceSecretKey?: string[];
+    walletAddress?: string[];
     _form?: string[];
   };
   message?: string | null;
@@ -36,6 +36,8 @@ export async function signUp(
     const upbitSecretKey = formData.get('upbitSecretKey') as string || '';
     const binanceAccessKey = formData.get('binanceAccessKey') as string || '';
     const binanceSecretKey = formData.get('binanceSecretKey') as string || '';
+    const walletAddress = formData.get('walletAddress') as string || '';
+    const walletType = formData.get('walletType') as string || '';
     
     // 유효성 검사
     const errors: SignUpFormState['errors'] = {};
@@ -44,8 +46,12 @@ export async function signUp(
       errors.email = ['유효한 이메일 주소를 입력해주세요'];
     }
     
-    if (!password || password.length < 6) {
+    if (!password) {
+      errors.password = ['비밀번호를 입력해주세요'];
+    } else if (password.length < 6) {
       errors.password = ['비밀번호는 6자 이상이어야 합니다'];
+    } else if (password.length > 72) {
+      errors.password = ['비밀번호는 72자를 초과할 수 없습니다'];
     }
     
     if (!username) {
@@ -79,25 +85,34 @@ export async function signUp(
     // 서버 측 Supabase 클라이언트 가져오기
     const supabase = createSupabaseClient();
     
-    // 비밀번호 해싱
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Supabase auth 회원가입
+    // Supabase auth 회원가입 (원본 비밀번호 사용)
     const { data, error } = await supabase.auth.signUp({
       email,
-      password: hashedPassword, // 해시된 비밀번호 사용
+      password,
       options: {
         data: {
           username,
           display_name: displayName,
+          wallet_address: walletAddress,
+          wallet_type: walletType,
         },
       },
     });
-    console.log(error);
-    if (error) throw error;
+
+    if (error) {
+      if (error.message.includes("Password")) {
+        return {
+          errors: {
+            password: ['비밀번호가 너무 길거나 형식이 올바르지 않습니다 (최대 72자)']
+          },
+          success: false
+        };
+      }
+      throw error;
+    }
     
     if (data.user) {
-      // User 테이블에 추가 데이터 저장
+      // User 테이블에 추가 데이터 저장 (비밀번호 제외)
       const { error: insertError } = await supabase.from("User").insert({
         email: data.user.email!,
         username,
@@ -106,12 +121,14 @@ export async function signUp(
         upbit_secret_key: useUpbit ? upbitSecretKey : "",
         binance_access_key: useBinance ? binanceAccessKey : "",
         binance_secret_key: useBinance ? binanceSecretKey : "",
-        password: hashedPassword, // 해시된 비밀번호 저장
+        wallet_address: walletAddress,
+        wallet_type: walletType,
+        wallet_connected: walletAddress ? true : false,
+        last_wallet_connection: walletAddress ? new Date().toISOString() : null,
       });
       
-      console.log(data)
-      console.log(insertError)
       if (insertError) throw insertError;
+      
       // 캐시 갱신 및 리디렉션
       revalidatePath('/signin');
       redirect('/signin');

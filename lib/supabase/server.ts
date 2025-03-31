@@ -1,28 +1,10 @@
 import { Database } from "@/types/supabase"
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { createClient } from '@supabase/supabase-js'
 
 export const createSupabaseClient = () => {
-  const cookieStore = cookies()
-
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll().map((cookie) => ({
-            name: cookie.name,
-            value: cookie.value,
-          }))
-        },
-        setAll(cookies) {
-          cookies.forEach((cookie) => {
-            cookieStore.set(cookie.name, cookie.value, cookie.options)
-          })
-        },
-      },
-    },
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  
+  return createClient<Database>(supabaseUrl, supabaseKey)
 }
 

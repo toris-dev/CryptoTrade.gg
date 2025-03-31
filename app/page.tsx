@@ -1,6 +1,7 @@
 "use client";
 
 import { Logo } from "@/app/components/logo";
+import { TradeHistory } from "@/app/components/trade-history";
 import { Button } from "@/components/ui/button";
 import cryptoAnimation from "@/public/crypto-animation.json";
 import tradingAnimation from "@/public/trading-animation.json";
@@ -238,6 +239,8 @@ export default function IntroPage() {
           />
         </motion.div>
       </motion.div>
+
+      <TradeHistory />
     </div>
   );
 }

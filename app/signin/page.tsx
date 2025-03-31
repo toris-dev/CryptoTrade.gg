@@ -2,6 +2,7 @@
 
 import type React from "react";
 
+import { signIn } from "@/app/actions/signinActions";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "@/components/ui/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -27,23 +29,27 @@ export default function SignInPage() {
   const router = useRouter();
   const supabase = createClient();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+      const result = await signIn(email, password);
 
-      if (error) throw error;
+      if (!result.success) {
+        throw new Error(result.error);
+      }
 
       router.push("/");
-    } catch (err) {
-      setError("이메일 또는 비밀번호가 올바르지 않습니다. 다시 시도해 주세요.");
-      console.error(err);
+    } catch (error) {
+      console.error("로그인 실패:", error);
+      toast({
+        title: "로그인 실패",
+        description:
+          error instanceof Error ? error.message : "로그인에 실패했습니다.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

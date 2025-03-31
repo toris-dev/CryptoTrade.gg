@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
@@ -10,15 +11,31 @@ interface ConnectButtonProps {
   setIsConnected: (connected: boolean) => void;
 }
 
+interface WalletInfo {
+  address: string | null;
+  type: "metamask" | "kaikas" | "phantom" | null;
+}
+
 export function ConnectButton({
   isConnected: externalIsConnected,
   setIsConnected: externalSetIsConnected,
 }: ConnectButtonProps) {
-  // 컴포넌트 내부 상태
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true); // 초기에 로딩 상태로 시작
+  const supabase = createClientComponentClient();
+  const [walletInfo, setWalletInfo] = useState<WalletInfo>({
+    address: null,
+    type: null,
+  });
+  const [isLoading, setIsLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
   const [internalIsConnected, setInternalIsConnected] = useState(false);
+
+  const handleAccountsChanged = (accounts: string[]) => {
+    if (accounts.length === 0) {
+      disconnectWallet();
+    } else {
+      handleSuccessfulConnection(accounts[0], walletInfo.type);
+    }
+  };
 
   // 내부 상태가 변경될 때 외부 상태도 업데이트
   useEffect(() => {
@@ -45,7 +62,7 @@ export function ConnectButton({
         await checkIfWalletIsConnected();
       } else {
         setInternalIsConnected(false);
-        setWalletAddress(null);
+        setWalletInfo({ address: null, type: null });
         setIsLoading(false);
       }
     };
@@ -56,73 +73,41 @@ export function ConnectButton({
   const checkIfWalletIsConnected = async () => {
     try {
       const { ethereum } = window as any;
+      const { klaytn } = window as any;
+      const solana = (window as any).solana;
 
-      if (!ethereum) {
-        Swal.fire({
-          title: "메타마스크 필요",
-          text: "메타마스크 설치가 필요합니다.",
-          icon: "warning",
-          confirmButtonText: "확인",
-          confirmButtonColor: "#3085d6",
-          background: "#1e293b",
-          color: "#fff",
-        });
-        setIsLoading(false);
-        return;
+      // Check MetaMask
+      if (ethereum) {
+        const accounts = await ethereum.request({ method: "eth_accounts" });
+        if (accounts.length !== 0) {
+          handleSuccessfulConnection(accounts[0], "metamask");
+          return;
+        }
       }
 
-      // 연결된 계정 확인
-      const accounts = await ethereum.request({ method: "eth_accounts" });
-
-      if (accounts.length !== 0) {
-        const account = accounts[0];
-        Swal.fire({
-          title: "연결 상태",
-          text: `연결된 계정: ${account.substring(0, 6)}...${account.substring(
-            account.length - 4
-          )}`,
-          icon: "info",
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          background: "#1e293b",
-          color: "#fff",
-        });
-        setWalletAddress(account);
-        setInternalIsConnected(true);
-        // 연결됨 상태 저장
-        localStorage.setItem("walletDisconnected", "false");
-      } else {
-        Swal.fire({
-          title: "연결 상태",
-          text: "연결된 계정이 없습니다.",
-          icon: "info",
-          toast: true,
-          position: "top-end",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          background: "#1e293b",
-          color: "#fff",
-        });
-        setInternalIsConnected(false);
+      // Check Kaikas
+      if (klaytn) {
+        const accounts = await klaytn.enable();
+        if (accounts.length !== 0) {
+          handleSuccessfulConnection(accounts[0], "kaikas");
+          return;
+        }
       }
-    } catch (error) {
-      console.error("지갑 연결 확인 중 오류 발생:", error);
 
-      Swal.fire({
-        title: "연결 오류",
-        text: "지갑 연결 확인 중 오류가 발생했습니다.",
-        icon: "error",
-        confirmButtonText: "확인",
-        confirmButtonColor: "#3085d6",
-        background: "#1e293b",
-        color: "#fff",
-      });
+      // Check Phantom
+      if (solana?.isPhantom) {
+        const resp = await solana.connect({ onlyIfTrusted: true });
+        if (resp.publicKey) {
+          handleSuccessfulConnection(resp.publicKey.toString(), "phantom");
+          return;
+        }
+      }
 
       setInternalIsConnected(false);
+      setWalletInfo({ address: null, type: null });
+    } catch (error) {
+      console.error("지갑 연결 확인 중 오류 발생:", error);
+      handleConnectionError();
     } finally {
       setIsLoading(false);
     }
@@ -132,133 +117,245 @@ export function ConnectButton({
     setIsLoading(true);
     try {
       const { ethereum } = window as any;
+      const { klaytn } = window as any;
+      const solana = (window as any).solana;
 
-      if (!ethereum) {
-        Swal.fire({
-          title: "메타마스크 필요",
-          text: "지갑을 연결하려면 메타마스크를 설치하세요!",
-          icon: "warning",
-          confirmButtonText: "확인",
-          confirmButtonColor: "#3085d6",
-          background: "#1e293b",
-          color: "#fff",
-        });
-        setIsLoading(false);
-        return;
+      // Show wallet selection dialog
+      const { value: walletType } = await Swal.fire({
+        title: "지갑 선택",
+        input: "radio",
+        inputOptions: {
+          metamask: "MetaMask (이더리움)",
+          kaikas: "Kaikas (클레이튼)",
+          phantom: "Phantom (솔라나)",
+        },
+        inputValidator: (value) => {
+          if (!value) {
+            return "지갑을 선택해주세요!";
+          }
+          return null;
+        },
+        background: "#1e293b",
+        color: "#fff",
+      });
+
+      switch (walletType) {
+        case "metamask":
+          if (!ethereum) {
+            window.open("https://metamask.io/download/", "_blank");
+            throw new Error("MetaMask를 설치해주세요!");
+          }
+          const ethAccounts = await ethereum.request({
+            method: "eth_requestAccounts",
+          });
+          handleSuccessfulConnection(ethAccounts[0], "metamask");
+          break;
+
+        case "kaikas":
+          if (!klaytn) {
+            window.open(
+              "https://chrome.google.com/webstore/detail/kaikas/jblndlipeogpafnldhgmapagcccfchpi",
+              "_blank"
+            );
+            throw new Error("Kaikas를 설치해주세요!");
+          }
+          const klaytnAccounts = await klaytn.enable();
+          handleSuccessfulConnection(klaytnAccounts[0], "kaikas");
+          break;
+
+        case "phantom":
+          if (!solana?.isPhantom) {
+            window.open("https://phantom.app/", "_blank");
+            throw new Error("Phantom을 설치해주세요!");
+          }
+          const resp = await solana.connect();
+          handleSuccessfulConnection(resp.publicKey.toString(), "phantom");
+          break;
       }
 
-      // 연결 상태 저장
-      localStorage.setItem("walletDisconnected", "false");
-
-      // 계정 요청
-      const accounts = await ethereum.request({
-        method: "eth_requestAccounts",
-      });
-
-      console.log("연결된 계정:", accounts[0]);
-      setWalletAddress(accounts[0]);
-      setInternalIsConnected(true);
-
-      // 연결 성공 알림
-      Swal.fire({
-        title: "지갑 연결 성공",
-        text: `${accounts[0].substring(0, 6)}...${accounts[0].substring(
-          accounts[0].length - 4
-        )} 계정이 연결되었습니다.`,
-        icon: "success",
-        confirmButtonText: "확인",
-        confirmButtonColor: "#3085d6",
-        background: "#1e293b",
-        color: "#fff",
-        timer: 2000,
-        timerProgressBar: true,
-        toast: true,
-        position: "top-end",
-        showConfirmButton: false,
-      });
-
-      // 계정 변경 리스너
-      ethereum.on("accountsChanged", (accounts: string[]) => {
-        if (accounts.length === 0) {
-          setWalletAddress(null);
-          setInternalIsConnected(false);
-          // 연결 해제 상태 저장
-          localStorage.setItem("walletDisconnected", "true");
-
-          Swal.fire({
-            title: "계정 연결 해제됨",
-            text: "지갑 계정이 연결 해제되었습니다.",
-            icon: "info",
-            confirmButtonText: "확인",
-            confirmButtonColor: "#3085d6",
-            background: "#1e293b",
-            color: "#fff",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-          });
-        } else {
-          setWalletAddress(accounts[0]);
-          setInternalIsConnected(true);
-          // 연결됨 상태 저장
-          localStorage.setItem("walletDisconnected", "false");
-
-          Swal.fire({
-            title: "계정 변경됨",
-            text: `${accounts[0].substring(0, 6)}...${accounts[0].substring(
-              accounts[0].length - 4
-            )} 계정으로 변경되었습니다.`,
-            icon: "info",
-            confirmButtonText: "확인",
-            confirmButtonColor: "#3085d6",
-            background: "#1e293b",
-            color: "#fff",
-            toast: true,
-            position: "top-end",
-            timer: 3000,
-            timerProgressBar: true,
-            showConfirmButton: false,
-          });
-        }
-      });
+      // Set up event listeners for the selected wallet
+      setupWalletListeners(walletType);
     } catch (error) {
       console.error("지갑 연결 중 오류 발생:", error);
-
-      Swal.fire({
-        title: "연결 실패",
-        text: "지갑 연결 중 오류가 발생했습니다.",
-        icon: "error",
-        confirmButtonText: "확인",
-        confirmButtonColor: "#3085d6",
-        background: "#1e293b",
-        color: "#fff",
-      });
+      handleConnectionError();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const disconnectWallet = () => {
-    // 상태 초기화
-    setWalletAddress(null);
+  const handleConnectionError = () => {
     setInternalIsConnected(false);
+    setWalletInfo({ address: null, type: null });
 
-    // 로컬 스토리지에 연결 해제 상태 저장
-    localStorage.setItem("walletDisconnected", "true");
+    Swal.fire({
+      title: "연결 오류",
+      text: "지갑 연결 중 오류가 발생했습니다.",
+      icon: "error",
+      confirmButtonText: "확인",
+      confirmButtonColor: "#3085d6",
+      background: "#1e293b",
+      color: "#fff",
+    });
+  };
 
-    // 이벤트 리스너 제거 (메모리 누수 방지)
+  const setupWalletListeners = (walletType: string) => {
     const { ethereum } = window as any;
-    if (ethereum && ethereum.removeListener) {
-      ethereum.removeListener("accountsChanged", () => {});
+    const { klaytn } = window as any;
+    const solana = (window as any).solana;
+
+    // Remove existing listeners
+    if (ethereum?.removeListener) {
+      ethereum.removeListener("accountsChanged", handleAccountsChanged);
+    }
+    if (klaytn?.removeListener) {
+      klaytn.removeListener("accountsChanged", handleAccountsChanged);
+    }
+    if (solana?.removeListener) {
+      solana.removeListener("disconnect", () => {});
+    }
+
+    // Add new listeners based on wallet type
+    switch (walletType) {
+      case "metamask":
+        ethereum?.on("accountsChanged", handleAccountsChanged);
+        break;
+      case "kaikas":
+        klaytn?.on("accountsChanged", handleAccountsChanged);
+        break;
+      case "phantom":
+        solana?.on("disconnect", () => {
+          handleAccountsChanged([]);
+        });
+        break;
+    }
+  };
+
+  const handleSuccessfulConnection = async (
+    address: string,
+    type: WalletInfo["type"]
+  ) => {
+    setWalletInfo({ address, type });
+    setInternalIsConnected(true);
+    localStorage.setItem("walletDisconnected", "false");
+    localStorage.setItem("walletType", type || "");
+
+    // Get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError) {
+      console.error("사용자 정보 가져오기 실패:", userError);
+      return;
+    }
+
+    if (user) {
+      // Update auth metadata
+      const { error: updateAuthError } = await supabase.auth.updateUser({
+        data: {
+          wallet_address: address,
+          wallet_type: type,
+        },
+      });
+
+      if (updateAuthError) {
+        console.error("Auth 메타데이터 업데이트 실패:", updateAuthError);
+      }
+
+      // Update User table
+      const { error: updateUserError } = await supabase
+        .from("User")
+        .update({
+          wallet_address: address,
+          wallet_type: type,
+          wallet_connected: true,
+          last_wallet_connection: new Date().toISOString(),
+        })
+        .eq("email", user.email);
+
+      if (updateUserError) {
+        console.error("User 테이블 업데이트 실패:", updateUserError);
+      }
+    }
+
+    Swal.fire({
+      title: "연결 상태",
+      text: `${type?.toUpperCase()} 지갑 연결됨: ${address.substring(
+        0,
+        6
+      )}...${address.substring(address.length - 4)}`,
+      icon: "success",
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      background: "#1e293b",
+      color: "#fff",
+    });
+  };
+
+  const disconnectWallet = async () => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (!userError && user) {
+      // Update auth metadata
+      const { error: updateAuthError } = await supabase.auth.updateUser({
+        data: {
+          wallet_address: null,
+          wallet_type: null,
+        },
+      });
+
+      if (updateAuthError) {
+        console.error("Auth 메타데이터 업데이트 실패:", updateAuthError);
+      }
+
+      // Update User table
+      const { error: updateUserError } = await supabase
+        .from("User")
+        .update({
+          wallet_address: null,
+          wallet_type: null,
+          wallet_connected: false,
+          last_wallet_connection: null,
+        })
+        .eq("email", user.email);
+
+      if (updateUserError) {
+        console.error("User 테이블 업데이트 실패:", updateUserError);
+      }
+    }
+
+    setWalletInfo({ address: null, type: null });
+    setInternalIsConnected(false);
+    localStorage.setItem("walletDisconnected", "true");
+    localStorage.removeItem("walletType");
+
+    // Remove all wallet listeners
+    const { ethereum } = window as any;
+    const { klaytn } = window as any;
+    const solana = (window as any).solana;
+
+    if (ethereum?.removeListener) {
+      ethereum.removeListener("accountsChanged", handleAccountsChanged);
+    }
+    if (klaytn?.removeListener) {
+      klaytn.removeListener("accountsChanged", handleAccountsChanged);
+    }
+    if (solana?.removeListener) {
+      solana.removeListener("disconnect", () => {});
     }
 
     Swal.fire({
       title: "지갑 연결 해제됨",
       html: `
         <p>지갑 연결이 해제되었습니다.</p>
-        <p class="text-sm mt-2 text-gray-300">완전히 연결을 끊으려면 메타마스크 확장 프로그램에서 수동으로 연결 해제하세요.</p>
+        <p class="text-sm mt-2 text-gray-300">완전히 연결을 끊으려면 지갑 확장 프로그램에서 수동으로 연결 해제하세요.</p>
       `,
       icon: "info",
       confirmButtonText: "확인",
@@ -280,11 +377,14 @@ export function ConnectButton({
 
   return (
     <div>
-      {internalIsConnected && walletAddress ? (
+      {internalIsConnected && walletInfo.address ? (
         <div className="flex items-center gap-2">
           <span className="text-xs text-green-400 hidden sm:inline">
-            {`${walletAddress.substring(0, 6)}...${walletAddress.substring(
-              walletAddress.length - 4
+            {`${walletInfo.address.substring(
+              0,
+              6
+            )}...${walletInfo.address.substring(
+              walletInfo.address.length - 4
             )}`}
           </span>
           <Button
