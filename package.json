@@ -50,6 +50,7 @@
     "@web3modal/wagmi": "^5.1.11",
     "autoprefixer": "^10.4.20",
     "bcrypt": "^5.1.1",
+    "ccxt": "^4.4.72",
     "chart.js": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

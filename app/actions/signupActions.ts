@@ -1,6 +1,7 @@
 "use server";
 
 import { createSupabaseClient } from "@/lib/supabase/server";
+import { saveApiKeys } from "@/lib/utils/api-keys";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
@@ -117,10 +118,6 @@ export async function signUp(
         email: data.user.email!,
         username,
         display_name: displayName,
-        upbit_access_key: useUpbit ? upbitAccessKey : "",
-        upbit_secret_key: useUpbit ? upbitSecretKey : "",
-        binance_access_key: useBinance ? binanceAccessKey : "",
-        binance_secret_key: useBinance ? binanceSecretKey : "",
         wallet_address: walletAddress,
         wallet_type: walletType,
         wallet_connected: walletAddress ? true : false,
@@ -128,6 +125,17 @@ export async function signUp(
       });
       
       if (insertError) throw insertError;
+
+      // API 키 암호화 저장
+      if (useUpbit || useBinance) {
+        await saveApiKeys(
+          data.user.id,
+          useUpbit ? upbitAccessKey : undefined,
+          useUpbit ? upbitSecretKey : undefined,
+          useBinance ? binanceAccessKey : undefined,
+          useBinance ? binanceSecretKey : undefined
+        );
+      }
       
       // 캐시 갱신 및 리디렉션
       revalidatePath('/signin');

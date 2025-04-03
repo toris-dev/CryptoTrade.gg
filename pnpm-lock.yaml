@@ -128,6 +128,9 @@ importers:
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
+      ccxt:
+        specifier: ^4.4.72
+        version: 4.4.72(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       chart.js:
         specifier: latest
         version: 4.4.8
@@ -1865,6 +1868,11 @@ packages:
 
   caniuse-lite@1.0.30001704:
     resolution: {integrity: sha512-+L2IgBbV6gXB4ETf0keSvLr7JUrRVbIaB/lrQ1+z8mRcQiisG5k+lG6O4n6Y5q6f5EuNfaYXKgymucphlEXQew==}
+
+  ccxt@4.4.72:
+    resolution: {integrity: sha512-EVI/5ohHI8CdFWtseL3xtPY92bpfJ7J4jIN+t2818xox5iMKcROA63Q9mbXubeYVGnJ/hUL3iwx22DjRAauO0Q==}
+    engines: {node: '>=15.0.0'}
+    hasBin: true
 
   chart.js@4.4.8:
     resolution: {integrity: sha512-IkGZlVpXP+83QpMm4uxEiGqSI7jFizwVtF3+n5Pc3k7sMO+tkd0qxh2OzLhenM0K80xtmAONWGBn082EiBQSDA==}
@@ -6181,6 +6189,13 @@ snapshots:
   camelcase@5.3.1: {}
 
   caniuse-lite@1.0.30001704: {}
+
+  ccxt@4.4.72(bufferutil@4.0.9)(utf-8-validate@5.0.10):
+    dependencies:
+      ws: 8.18.1(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   chart.js@4.4.8:
     dependencies:
