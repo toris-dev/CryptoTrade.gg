@@ -9,272 +9,204 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      trade_analytics: {
+      assets: {
         Row: {
-          average_trade_duration: unknown | null
-          best_trade_pnl: number | null
+          amount: number
           created_at: string
-          favorite_pair_id: string | null
           id: string
-          last_calculated_at: string
-          total_pnl: number
-          total_trades: number
-          total_volume: number
+          last_price: number | null
+          last_price_updated_at: string | null
+          platform: string
+          symbol: string
           updated_at: string
-          user_id: string
-          winning_trades: number
-          worst_trade_pnl: number | null
+          wallet_id: string
         }
         Insert: {
-          average_trade_duration?: unknown | null
-          best_trade_pnl?: number | null
+          amount: number
           created_at?: string
-          favorite_pair_id?: string | null
           id?: string
-          last_calculated_at: string
-          total_pnl?: number
-          total_trades?: number
-          total_volume?: number
+          last_price?: number | null
+          last_price_updated_at?: string | null
+          platform: string
+          symbol: string
           updated_at?: string
-          user_id: string
-          winning_trades?: number
-          worst_trade_pnl?: number | null
+          wallet_id: string
         }
         Update: {
-          average_trade_duration?: unknown | null
-          best_trade_pnl?: number | null
+          amount?: number
           created_at?: string
-          favorite_pair_id?: string | null
           id?: string
-          last_calculated_at?: string
-          total_pnl?: number
-          total_trades?: number
-          total_volume?: number
+          last_price?: number | null
+          last_price_updated_at?: string | null
+          platform?: string
+          symbol?: string
           updated_at?: string
-          user_id?: string
-          winning_trades?: number
-          worst_trade_pnl?: number | null
+          wallet_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "trade_analytics_favorite_pair_id_fkey"
-            columns: ["favorite_pair_id"]
+            foreignKeyName: "assets_wallet_id_fkey"
+            columns: ["wallet_id"]
             isOneToOne: false
-            referencedRelation: "trading_pairs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "trade_analytics_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "User"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      trade_positions: {
-        Row: {
-          closed_at: string | null
-          created_at: string
-          current_price: number
-          entry_price: number
-          id: string
-          opened_at: string
-          pair_id: string
-          quantity: number
-          realized_pnl: number | null
-          side: string
-          status: string
-          unrealized_pnl: number | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          closed_at?: string | null
-          created_at?: string
-          current_price: number
-          entry_price: number
-          id?: string
-          opened_at: string
-          pair_id: string
-          quantity: number
-          realized_pnl?: number | null
-          side: string
-          status: string
-          unrealized_pnl?: number | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          closed_at?: string | null
-          created_at?: string
-          current_price?: number
-          entry_price?: number
-          id?: string
-          opened_at?: string
-          pair_id?: string
-          quantity?: number
-          realized_pnl?: number | null
-          side?: string
-          status?: string
-          unrealized_pnl?: number | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "trade_positions_pair_id_fkey"
-            columns: ["pair_id"]
-            isOneToOne: false
-            referencedRelation: "trading_pairs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "trade_positions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "User"
+            referencedRelation: "wallets"
             referencedColumns: ["id"]
           },
         ]
       }
       trades: {
         Row: {
-          closed_at: string | null
+          amount: number
           created_at: string
-          executed_at: string
           fee: number
           fee_asset: string
           id: string
-          order_type: string
-          pair_id: string
+          platform: string
           price: number
-          profit_loss: number | null
-          quantity: number
           side: string
           status: string
+          symbol: string
           total: number
+          tx_hash: string | null
+          type: string
+          updated_at: string
+          user_id: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          fee: number
+          fee_asset: string
+          id?: string
+          platform: string
+          price: number
+          side: string
+          status: string
+          symbol: string
+          total: number
+          tx_hash?: string | null
+          type: string
+          updated_at?: string
+          user_id: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          fee?: number
+          fee_asset?: string
+          id?: string
+          platform?: string
+          price?: number
+          side?: string
+          status?: string
+          symbol?: string
+          total?: number
+          tx_hash?: string | null
+          type?: string
+          updated_at?: string
+          user_id?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trades_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trades_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      users: {
+        Row: {
+          auth_method: string
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          wallet_address: string
+          wallet_type: string
+        }
+        Insert: {
+          auth_method: string
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          wallet_address: string
+          wallet_type: string
+        }
+        Update: {
+          auth_method?: string
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          wallet_address?: string
+          wallet_type?: string
+        }
+        Relationships: []
+      }
+      wallets: {
+        Row: {
+          address: string
+          balance: number | null
+          chain_id: string
+          created_at: string
+          id: string
+          is_primary: boolean
+          last_used_at: string | null
+          nickname: string | null
+          type: string
           updated_at: string
           user_id: string
         }
         Insert: {
-          closed_at?: string | null
+          address: string
+          balance?: number | null
+          chain_id: string
           created_at?: string
-          executed_at: string
-          fee?: number
-          fee_asset: string
           id?: string
-          order_type: string
-          pair_id: string
-          price: number
-          profit_loss?: number | null
-          quantity: number
-          side: string
-          status: string
-          total: number
+          is_primary?: boolean
+          last_used_at?: string | null
+          nickname?: string | null
+          type: string
           updated_at?: string
           user_id: string
         }
         Update: {
-          closed_at?: string | null
+          address?: string
+          balance?: number | null
+          chain_id?: string
           created_at?: string
-          executed_at?: string
-          fee?: number
-          fee_asset?: string
           id?: string
-          order_type?: string
-          pair_id?: string
-          price?: number
-          profit_loss?: number | null
-          quantity?: number
-          side?: string
-          status?: string
-          total?: number
+          is_primary?: boolean
+          last_used_at?: string | null
+          nickname?: string | null
+          type?: string
           updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "trades_pair_id_fkey"
-            columns: ["pair_id"]
-            isOneToOne: false
-            referencedRelation: "trading_pairs"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "trades_user_id_fkey"
+            foreignKeyName: "wallets_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "User"
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
-      }
-      trading_pairs: {
-        Row: {
-          base_asset: string
-          created_at: string
-          exchange: string
-          id: string
-          is_active: boolean | null
-          quote_asset: string
-          symbol: string
-          updated_at: string
-        }
-        Insert: {
-          base_asset: string
-          created_at?: string
-          exchange: string
-          id?: string
-          is_active?: boolean | null
-          quote_asset: string
-          symbol: string
-          updated_at?: string
-        }
-        Update: {
-          base_asset?: string
-          created_at?: string
-          exchange?: string
-          id?: string
-          is_active?: boolean | null
-          quote_asset?: string
-          symbol?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      User: {
-        Row: {
-          created_at: string
-          display_name: string
-          id: string
-          thumbnail_img: string | null
-          updated_at: string
-          username: string
-          wallet_address: string | null
-          wallet_type: string | null
-        }
-        Insert: {
-          created_at?: string
-          display_name: string
-          id?: string
-          thumbnail_img?: string | null
-          updated_at?: string
-          username: string
-          wallet_address?: string | null
-          wallet_type?: string | null
-        }
-        Update: {
-          created_at?: string
-          display_name?: string
-          id?: string
-          thumbnail_img?: string | null
-          updated_at?: string
-          username?: string
-          wallet_address?: string | null
-          wallet_type?: string | null
-        }
-        Relationships: []
       }
     }
     Views: {
@@ -282,9 +214,7 @@ export type Database = {
     }
     Functions: {
       get_highest_win_rates: {
-        Args: {
-          limit_count?: number
-        }
+        Args: { limit_count?: number }
         Returns: {
           user_id: string
           username: string
@@ -295,9 +225,7 @@ export type Database = {
         }[]
       }
       get_most_traded_tokens: {
-        Args: {
-          limit_count?: number
-        }
+        Args: { limit_count?: number }
         Returns: {
           symbol: string
           exchange: string
@@ -306,10 +234,7 @@ export type Database = {
         }[]
       }
       get_trader_stats: {
-        Args: {
-          time_range?: unknown
-          limit_count?: number
-        }
+        Args: { time_range?: unknown; limit_count?: number }
         Returns: {
           user_id: string
           total_trades: number
@@ -329,11 +254,17 @@ export type Database = {
           avg_trade_size: number
         }[]
       }
+      get_user_primary_wallet: {
+        Args: { p_user_id: string }
+        Returns: {
+          wallet_address: string
+          wallet_type: string
+          chain_id: string
+          balance: number
+        }[]
+      }
       random_between: {
-        Args: {
-          low: number
-          high: number
-        }
+        Args: { low: number; high: number }
         Returns: number
       }
     }
@@ -346,27 +277,29 @@ export type Database = {
   }
 }
 
-type PublicSchema = Database[Extract<keyof Database, "public">]
+type DefaultSchema = Database[Extract<keyof Database, "public">]
 
 export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? (Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      Database[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -374,20 +307,22 @@ export type Tables<
     : never
 
 export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -395,20 +330,22 @@ export type TablesInsert<
     : never
 
 export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -416,21 +353,23 @@ export type TablesUpdate<
     : never
 
 export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof Database
+  }
+    ? keyof Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof Database }
+  ? Database[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof PublicSchema["CompositeTypes"]
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof Database },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof Database
@@ -439,6 +378,12 @@ export type CompositeTypes<
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends { schema: keyof Database }
   ? Database[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
-    ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const

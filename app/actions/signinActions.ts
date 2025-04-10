@@ -1,98 +1,147 @@
-import { createSupabaseClient } from "@/lib/supabase/server";
-import { AuthError } from "@supabase/supabase-js";
+"use server";
 
-export async function signIn(
-  email: string, 
-  password: string, 
-  walletAddress?: string, 
-  walletType?: string
-) {
+import { createSupabaseClient } from "@/lib/supabase/server";
+import { ethers } from "ethers";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+
+export type SignInFormState = {
+  errors?: {
+    walletAddress?: string[];
+    signature?: string[];
+    _form?: string[];
+  };
+  message?: string | null;
+  success?: boolean;
+  nonce?: string;
+};
+
+export async function getNonce(walletAddress: string): Promise<SignInFormState> {
   try {
-    // 비밀번호 길이 검증
-    if (password.length > 72) {
+    const supabase = createSupabaseClient();
+    
+    // 지갑 주소로 사용자 찾기
+    const { data: user, error: userError } = await supabase
+      .from("User")
+      .select("*")
+      .eq("wallet_address", walletAddress)
+      .single();
+    
+    if (userError) {
       return {
-        success: false,
-        error: "비밀번호는 72자를 초과할 수 없습니다",
+        errors: {
+          walletAddress: ['등록되지 않은 지갑 주소입니다']
+        },
+        success: false
       };
     }
-
-    const supabase = createSupabaseClient();
-
-    // Supabase Auth로 직접 로그인 (원본 비밀번호 사용)
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      if (error.message === "Invalid login credentials") {
-        throw new Error("이메일 또는 비밀번호가 올바르지 않습니다.");
-      }
-      console.log(error)
-      if (error.message.includes("Password")) {
-        throw new Error("비밀번호가 너무 길거나 형식이 올바르지 않습니다 (최대 72자)");
-      }
-      throw error;
-    }
-
-    // 지갑 정보가 제공된 경우 업데이트
-    if (walletAddress && walletType && data.user) {
-      // Auth 메타데이터 업데이트
-      const { error: updateAuthError } = await supabase.auth.updateUser({
-        data: {
-          wallet_address: walletAddress,
-          wallet_type: walletType,
-        },
-      });
-
-      if (updateAuthError) {
-        console.error("Auth 메타데이터 업데이트 실패:", updateAuthError);
-      }
-
-      // User 테이블 업데이트
-      const { error: updateUserError } = await supabase
-        .from("User")
-        .update({
-          wallet_address: walletAddress,
-          wallet_type: walletType,
-          wallet_connected: true,
-          last_wallet_connection: new Date().toISOString(),
-        })
-        .eq("email", data.user.email!);
-
-      if (updateUserError) {
-        console.error("User 테이블 업데이트 실패:", updateUserError);
-      }
-    }
-
-    return { success: true, data };
-  } catch (error) {
-    console.error("로그인 실패:", error);
     
-    // AuthError인 경우 더 자세한 에러 메시지 제공
-    if (error instanceof AuthError) {
-      switch (error.message) {
-        case "Email not confirmed":
-          return {
-            success: false,
-            error: "이메일 인증이 필요합니다. 이메일을 확인해주세요.",
-          };
-        case "Too many requests":
-          return {
-            success: false,
-            error: "너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.",
-          };
-        default:
-          return {
-            success: false,
-            error: "이메일 또는 비밀번호가 올바르지 않습니다.",
-          };
-      }
-    }
-
+    // 새로운 nonce 생성 및 저장
+    const nonce = ethers.utils.hexlify(ethers.utils.randomBytes(32));
+    
+    const { error: updateError } = await supabase
+      .from("User")
+      .update({ nonce })
+      .eq("id", user.id);
+    
+    if (updateError) throw updateError;
+    
     return {
-      success: false,
-      error: error instanceof Error ? error.message : "로그인에 실패했습니다.",
+      success: true,
+      nonce
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      errors: {
+        _form: [err.message || 'Nonce 생성 중 오류가 발생했습니다']
+      },
+      success: false
+    };
+  }
+}
+
+export async function verifySignature(
+  walletAddress: string,
+  signature: string,
+  nonce: string
+): Promise<SignInFormState> {
+  try {
+    const supabase = createSupabaseClient();
+    
+    // 지갑 주소로 사용자 찾기
+    const { data: user, error: userError } = await supabase
+      .from("User")
+      .select("*")
+      .eq("wallet_address", walletAddress)
+      .single();
+    
+    if (userError || !user) {
+      return {
+        errors: {
+          walletAddress: ['등록되지 않은 지갑 주소입니다']
+        },
+        success: false
+      };
+    }
+    
+    // nonce 검증
+    if (user.nonce !== nonce) {
+      return {
+        errors: {
+          _form: ['유효하지 않은 nonce입니다']
+        },
+        success: false
+      };
+    }
+    
+    // 서명 검증
+    const message = `Welcome to CryptoTrade.gg!\n\nNonce: ${nonce}`;
+    const recoveredAddress = ethers.utils.verifyMessage(message, signature);
+    
+    if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+      return {
+        errors: {
+          signature: ['유효하지 않은 서명입니다']
+        },
+        success: false
+      };
+    }
+    
+    // 사용자 세션 생성
+    const { error: authError } = await supabase.auth.signInWithPassword({
+      email: `${walletAddress.toLowerCase()}@wallet.cryptotrade.gg`, // 지갑 주소를 이용한 가상 이메일
+      password: nonce, // 임시 비밀번호로 nonce 사용
+    });
+    
+    if (authError) throw authError;
+    
+    // nonce 초기화 및 마지막 로그인 시간 업데이트
+    const { error: updateError } = await supabase
+      .from("User")
+      .update({
+        nonce: null,
+        last_signed_in: new Date().toISOString()
+      })
+      .eq("id", user.id);
+    
+    if (updateError) throw updateError;
+    
+    // 캐시 갱신 및 리디렉션
+    revalidatePath('/');
+    redirect('/');
+    
+    return {
+      message: "로그인 성공",
+      success: true
+    };
+  } catch (err: any) {
+    console.error(err);
+    return {
+      errors: {
+        _form: [err.message || '로그인 중 오류가 발생했습니다']
+      },
+      success: false
     };
   }
 } 

@@ -3,6 +3,8 @@
 import { Logo } from "@/app/components/logo";
 import { TradeHistory } from "@/app/components/trade-history";
 import { Button } from "@/components/ui/button";
+import { Transaction } from "@/lib/blockchain-client";
+import { supabase } from "@/lib/supabase/client";
 import cryptoAnimation from "@/public/crypto-animation.json";
 import tradingAnimation from "@/public/trading-animation.json";
 import { motion, useScroll, useTransform } from "framer-motion";
@@ -18,7 +20,7 @@ const LottieAnimation = dynamic(
   }
 );
 
-export default function IntroPage() {
+export default function Home() {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -26,13 +28,114 @@ export default function IntroPage() {
     offset: ["start start", "end start"],
   });
   const [isVisible, setIsVisible] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   useEffect(() => {
     setIsVisible(true);
+    // 사용자 세션 확인
+    const checkSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error) {
+        console.error("세션 확인 오류:", error);
+        setError("인증 오류가 발생했습니다");
+        setLoading(false);
+        return;
+      }
+
+      if (!session) {
+        setLoading(false);
+        return;
+      }
+
+      setUser(session.user);
+
+      // 사용자 정보 가져오기
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (userError) {
+        console.error("사용자 정보 가져오기 오류:", userError);
+        setError("사용자 정보를 가져오는데 실패했습니다");
+        setLoading(false);
+        return;
+      }
+
+      // 트랜잭션 데이터 가져오기
+      if (userData.wallet_address) {
+        try {
+          const response = await fetch(
+            `/api/transactions?userId=${session.user.id}&address=${userData.wallet_address}&limit=20`
+          );
+
+          if (!response.ok) {
+            throw new Error("트랜잭션 데이터를 가져오는데 실패했습니다");
+          }
+
+          const data = await response.json();
+          setTransactions(data.transactions);
+        } catch (err) {
+          console.error("트랜잭션 가져오기 오류:", err);
+          setError("트랜잭션 데이터를 가져오는데 실패했습니다");
+        }
+      }
+
+      setLoading(false);
+    };
+
+    checkSession();
   }, []);
+
+  // 트랜잭션 타입에 따른 아이콘 및 색상 결정
+  const getTransactionType = (tx: Transaction) => {
+    if (tx.tokenTransfers && tx.tokenTransfers.length > 0) {
+      return {
+        icon: "🪙",
+        color: "text-purple-500",
+        label: "토큰 전송",
+      };
+    }
+
+    if (parseFloat(tx.value) > 0) {
+      return {
+        icon: "📥",
+        color: "text-green-500",
+        label: "수신",
+      };
+    }
+
+    return {
+      icon: "📤",
+      color: "text-red-500",
+      label: "전송",
+    };
+  };
+
+  // 트랜잭션 값 포맷팅
+  const formatValue = (value: string) => {
+    const numValue = parseFloat(value);
+    if (numValue < 0.01) {
+      return numValue.toExponential(2);
+    }
+    return numValue.toFixed(4);
+  };
+
+  // 주소 축약
+  const shortenAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
 
   const handleExplore = () => {
     router.push("/home");

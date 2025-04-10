@@ -102,15 +102,15 @@ export default function Header() {
               isConnected={isConnected}
               setIsConnected={setIsConnected}
             />
-            {user ? (
+            {user && (
               <div className="flex items-center gap-2">
-                <Link href="/profile/me">
+                <Link href="/mypage">
                   <Button
                     variant="ghost"
                     className="interactive-button text-foreground"
                     size="sm"
                   >
-                    {user.user_metadata.display_name}
+                    {user.user_metadata.display_name || user.email}
                   </Button>
                 </Link>
                 <Button
@@ -122,16 +122,6 @@ export default function Header() {
                   Sign Out
                 </Button>
               </div>
-            ) : (
-              <Link href="/signin">
-                <Button
-                  variant="outline"
-                  className="interactive-button border-primary text-primary hover:bg-primary/10"
-                  size="sm"
-                >
-                  Sign In
-                </Button>
-              </Link>
             )}
           </div>
 
@@ -179,17 +169,17 @@ export default function Header() {
                   />
                 </motion.div>
 
-                {user ? (
+                {user && (
                   <motion.div
                     variants={itemVariants}
                     className="flex flex-col space-y-2"
                   >
-                    <Link href="/profile/me" onClick={() => setMenuOpen(false)}>
+                    <Link href="/mypage" onClick={() => setMenuOpen(false)}>
                       <Button
                         variant="ghost"
                         className="text-foreground w-full interactive-button"
                       >
-                        {user.email}
+                        {user.user_metadata.display_name || user.email}
                       </Button>
                     </Link>
                     <Button
@@ -202,17 +192,6 @@ export default function Header() {
                     >
                       Sign Out
                     </Button>
-                  </motion.div>
-                ) : (
-                  <motion.div variants={itemVariants}>
-                    <Link href="/signin" onClick={() => setMenuOpen(false)}>
-                      <Button
-                        variant="outline"
-                        className="border-primary text-primary hover:bg-primary/10 w-full interactive-button"
-                      >
-                        Sign In
-                      </Button>
-                    </Link>
                   </motion.div>
                 )}
               </motion.div>

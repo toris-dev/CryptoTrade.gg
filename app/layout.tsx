@@ -2,6 +2,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Analytics } from "@vercel/analytics/react";
 import { Inter } from "next/font/google";
 import type React from "react";
+import { Toaster } from "react-hot-toast";
 import { Footer } from "./components/footer";
 import Header from "./components/header";
 import { AuthProvider } from "./context/auth-context";
@@ -46,6 +47,7 @@ export default function RootLayout({
           </AuthProvider>
         </ThemeProvider>
         <Analytics />
+        <Toaster />
       </body>
     </html>
   );

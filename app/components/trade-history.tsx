@@ -47,8 +47,18 @@ export function TradeHistory() {
   useEffect(() => {
     async function fetchTrades() {
       try {
-        const response = await fetch("/api/trades");
-        if (!response.ok) throw new Error("Failed to fetch trades");
+        const response = await fetch("/api/trades", {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("로그인이 필요합니다");
+          }
+          throw new Error("Failed to fetch trades");
+        }
 
         const data = await response.json();
 
